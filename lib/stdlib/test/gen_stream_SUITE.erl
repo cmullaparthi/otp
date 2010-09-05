@@ -1145,42 +1145,33 @@ info_stream(Pid, ExpSize, ExpPos, ExpPct) ->
 
 proc_info(NumProcs, BinSize, BinOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(BinOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, BinSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
     ?line info_chunk(Pid, BinSize, <<"1234">>,     4,  25, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, BinSize, <<"5678">>,     8,  50, Xfn),
     ?line info_chunk(Pid, BinSize, <<"9012">>,    12,  75, Xfn),
     ?line info_chunk(Pid, BinSize, <<"3456">>,    16, 100, Xfn),
     ?line info_chunk(Pid, BinSize, end_of_stream, 16, 100, Xfn),
     ?line info_chunk(Pid, BinSize, end_of_stream, 16, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 proc_file_info(NumProcs, FileSize, FileOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(FileOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, FileSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
     ?line info_chunk(Pid, FileSize, <<"abcd">>,     4,  10, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, FileSize, <<"efgh">>,     8,  21, Xfn),
     ?line info_chunk(Pid, FileSize, <<"ijkl">>,    12,  31, Xfn),
     ?line info_chunk(Pid, FileSize, <<"mnop">>,    16,  42, Xfn),
@@ -1193,53 +1184,40 @@ proc_file_info(NumProcs, FileSize, FileOpts, Xfn) ->
     ?line info_chunk(Pid, FileSize, end_of_stream, 38, 100, Xfn),
     ?line info_chunk(Pid, FileSize, end_of_stream, 38, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 proc_mod_info(NumProcs, ModSize, ModOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(ModOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, ModSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
-
     ?line info_chunk(Pid, ModSize, odd_bin([1,3,5,7]),     16,  25, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, ModSize, odd_bin([9,11,13,15]),  32,  50, Xfn),
     ?line info_chunk(Pid, ModSize, odd_bin([17,19,21,23]), 48,  75, Xfn),
     ?line info_chunk(Pid, ModSize, odd_bin([25,27,29,31]), 64, 100, Xfn),
     ?line info_chunk(Pid, ModSize, end_of_stream, 64, 100, Xfn),
     ?line info_chunk(Pid, ModSize, end_of_stream, 64, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 buffer_info(NumProcs, BinSize, BinOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(BinOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, BinSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
     ?line info_chunk(Pid, BinSize, <<"12345">>,     5,   8, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, BinSize, <<"67890">>,    10,  16, Xfn),
     ?line info_chunk(Pid, BinSize, <<"12345">>,    15,  25, Xfn),
     ?line info_chunk(Pid, BinSize, <<"67890">>,    20,  33, Xfn),
@@ -1254,26 +1232,20 @@ buffer_info(NumProcs, BinSize, BinOpts, Xfn) ->
     ?line info_chunk(Pid, BinSize, end_of_stream,  60, 100, Xfn),
     ?line info_chunk(Pid, BinSize, end_of_stream,  60, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 buffer_file_info(NumProcs, FileSize, FileOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(FileOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, FileSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
     ?line info_chunk(Pid, FileSize, <<"abcde">>,    5,  13, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, FileSize, <<"fghij">>,   10,  26, Xfn),
     ?line info_chunk(Pid, FileSize, <<"klmno">>,   15,  39, Xfn),
     ?line info_chunk(Pid, FileSize, <<"pqrst">>,   20,  52, Xfn),
@@ -1284,26 +1256,20 @@ buffer_file_info(NumProcs, FileSize, FileOpts, Xfn) ->
     ?line info_chunk(Pid, FileSize, end_of_stream, 38, 100, Xfn),
     ?line info_chunk(Pid, FileSize, end_of_stream, 38, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 buffer_mod_info(NumProcs, ModSize, ModOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(ModOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, ModSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
 
     ?line info_chunk(Pid, ModSize, odd_bin([1,3,5,7,9]),      20,   8, Xfn),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
     ?line info_chunk(Pid, ModSize, odd_bin([11,13,15,17,19]), 40,  16, Xfn),
     ?line info_chunk(Pid, ModSize, odd_bin([21,23,25,27,29]), 60,  25, Xfn),
     ?line info_chunk(Pid, ModSize, odd_bin([31,33,35,37,39]), 80,  33, Xfn),
@@ -1318,24 +1284,18 @@ buffer_mod_info(NumProcs, ModSize, ModOpts, Xfn) ->
     ?line info_chunk(Pid, ModSize, end_of_stream, 240, 100, Xfn),
     ?line info_chunk(Pid, ModSize, end_of_stream, 240, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 block_buffer_info(NumProcs, ChunkBlockSize, BinSize, Bin, BinOpts, Xfn) ->
     ?line {ok, Pid} = gen_stream:start(create_opts(BinOpts, Xfn)),
-    ?line {proc_info, [{requested, R}, {active, A}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-    ?line NumProcs = R,
-    ?line NumProcs = A,
-
     ?line {stream_size, BinSize} = gen_stream:stream_size(Pid),
     ?line {stream_pos, 0} = gen_stream:stream_pos(Pid),
     ?line {pct_complete, 0} = gen_stream:pct_complete(Pid),
+    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+    ?line NumProcs = length(WorkerProcs),
 
     FullBlocks = BinSize div ChunkBlockSize,
     BlockBinSize = FullBlocks * ChunkBlockSize,
@@ -1353,12 +1313,9 @@ block_buffer_info(NumProcs, ChunkBlockSize, BinSize, Bin, BinOpts, Xfn) ->
     ?line info_chunk(Pid, BinSize, end_of_stream, BinSize, 100, Xfn),
     ?line info_chunk(Pid, BinSize, end_of_stream, BinSize, 100, Xfn),
 
+    ?line check_procs_dead(WorkerProcs),
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
-
-    ?line {proc_info, [{requested, R}, {active, 0}, {pids, P}]} =
-	gen_stream:proc_info(Pid),
-
     ?line {'EXIT', {noproc,_}} = (catch gen_stream:stream_size(Pid)).
 
 make_block_triplet([], Triplets, _Pos, _TotSize) ->
@@ -1381,8 +1338,12 @@ circ3_info(Opts, Xfn) ->
     ?line circular_info(Pid, 18, <<"123">>, Xfn),
     ?line circular_info(Pid, 21, <<"456">>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1401,8 +1362,12 @@ circ3m_info(Opts, Xfn) ->
     ?line circular_info(Pid, 18*4, odd_bin([1,3,5]), Xfn),
     ?line circular_info(Pid, 21*4, odd_bin([7,9,11]), Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1424,8 +1389,12 @@ circ4_info(Opts, Xfn) ->
     ?line circular_info(Pid, 36, <<"2345">>, Xfn),
     ?line circular_info(Pid, 40, <<"1234">>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1447,8 +1416,12 @@ circ4m_info(Opts, Xfn) ->
     ?line circular_info(Pid, 36*4, odd_bin([3,5,7,9]), Xfn),
     ?line circular_info(Pid, 40*4, odd_bin([1,3,5,7]), Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1470,8 +1443,12 @@ circ8_info(Opts, Xfn) ->
     ?line circular_info(Pid, 72, <<"34512345">>, Xfn),
     ?line circular_info(Pid, 80, <<"12345123">>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1493,8 +1470,12 @@ circ8m_info(Opts, Xfn) ->
     ?line circular_info(Pid, 72*4, odd_bin([5,7,9,1,3,5,7,9]), Xfn),
     ?line circular_info(Pid, 80*4, odd_bin([1,3,5,7,9,1,3,5]), Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1511,8 +1492,12 @@ circ_f14_info(Opts, Xfn) ->
     ?line circular_info(Pid,  56, <<"stuvwxyz\n12345">>, Xfn),
     ?line circular_info(Pid,  70, <<"67890\nabcdefgh">>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1527,8 +1512,12 @@ circ_f19_info(Opts, Xfn) ->
     ?line circular_info(Pid,  38, <<"abcdefghijklmnopqrs">>, Xfn),
     ?line circular_info(Pid,  57, <<"tuvwxyz\n1234567890\n">>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1551,8 +1540,12 @@ circ_f60_info(Opts, Xfn) ->
 				    "wxyz\n1"
 				  >>, Xfn),
 
-    ?line {proc_info, [{requested, R}, {active, R}, {pids, _P}]} =
-	gen_stream:proc_info(Pid),
+    case proplists:get_value(num_procs, Opts) of
+	undefined -> ok;
+	NumProcs ->
+	    WorkerProcs = get_linked_procs(Pid),  %% All are started when 1 replies.
+	    ?line NumProcs = length(WorkerProcs)
+    end,
 
     ?line stopped = gen_stream:stop(Pid),
     ?line busy_wait_for_process_to_end(Pid, 600),
@@ -1581,6 +1574,15 @@ file_size(FilePath) ->
 
 odd_bin(Items) ->
     << << 0,0,0,N >> || N <- Items >>.
+
+get_linked_procs(Pid) ->
+    {links, Procs} = erlang:process_info(Pid, links),
+    [ P || P <- Procs, P =/= self()].
+
+check_procs_dead(WorkerProcs) ->
+    receive after 1000 -> ok end,
+    [] = [ P || P <- WorkerProcs, is_process_alive(P) ].
+
 
 %%%--------------------------------------------------------
 %%% Exported functions for x_mfa tests

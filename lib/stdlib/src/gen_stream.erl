@@ -68,34 +68,12 @@
 %%%   code_change()
 %%%    ==> ok
 %%%
-%%%
-%%% The work flow (of the server) can be described as follows:
-%%%
-%%%   User module                          Generic
-%%%   -----------                          -------
-%%%     start            ----->             start
-%%%     init             <-----              .
-%%%
-%%%                                         loop
-%%%     handle_call      <-----              .
-%%%                      ----->             reply
-%%%
-%%%     handle_cast      <-----              .
-%%%
-%%%     handle_info      <-----              .
-%%%
-%%%     terminate        <-----              .
-%%%
-%%%                      ----->             reply
-%%%
-%%%
 %%% ---------------------------------------------------
 
 
 %% API
 -export([start/1, start/2, start_link/1, start_link/2, stop/1,
-	 next_block/1, stream_size/1, stream_pos/1, pct_complete/1,
-	 proc_info/1]).
+	 next_block/1, stream_size/1, stream_pos/1, pct_complete/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -295,18 +273,6 @@ stream_pos(Server) ->
 pct_complete(Server) ->
     gen_server:call(Server, pct_complete).
 
-%% --------------------------------------------------------------------
-%% Report the number of processes requested and the currently active
-%% processes.  (NOTE: for testing purposes only, the Pids should not
-%% be leaked out and used for other reasons.)
-%% --------------------------------------------------------------------
--spec proc_info(pid() | {local, atom()} | {global, atom()})
-		  -> tuple(proc_info, list()).
-
-proc_info(Server) ->
-    gen_server:call(Server, proc_info).
-
-
 %%%========================================================================
 %%% gen_server callback functions
 %%%========================================================================
@@ -419,12 +385,6 @@ handle_call(pct_complete, _From,
   when is_integer(Size) ->
     {reply, {pct_complete, (Seen * 100) div Size}, State};
 
-handle_call(proc_info, _From,
-	    #gstr_state{orig_procs=Procs,
-		        options=#gstr_opts{num_procs=NP}} = State) ->
-    AP = length([P || P <- Procs, erlang:is_process_alive(P)]),
-    Reply = [{requested, NP}, {active, AP}, {pids, Procs}],
-    {reply, {proc_info, Reply}, State};
 %% If Size is not an integer, return its value every time...
 %% For example: {pct_complete, infinite}
 handle_call(pct_complete, _From, #gstr_state{source_size=Size} = State) ->
