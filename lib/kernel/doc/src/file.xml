@@ -1783,6 +1783,59 @@ f.txt:  {person, "kalle", 25}.
       </desc>
     </func>
     <func>
+      <name>sendfile(IoDevice, Socket, Offset, Bytes) ->
+      {ok, BytesSent} | {error, Reason}</name>
+      <fsummary>send a file to a socket</fsummary>
+      <type>
+        <v>IoDevice = io_device()</v>
+        <v>Socket = port() | integer()</v>
+        <v>Offset = non_neg_integer()</v>
+        <v>Bytes = non_neg_integer()</v>
+        <v>Reason = ext_posix() | terminated</v>
+      </type>
+      <desc>
+        <p>Sends <c>Bytes</c> from the file referenced by <c>IoDevice</c>
+	beginning at <c>Offset</c> to <c>Socket</c>.
+	Returns <c>{ok, BytesSent}</c> if successful,
+        otherwise <c>{error, Reason}</c>.</p>
+	<p>Available on Linux, FreeBSD, Solaris, Darwin and Windows</p>
+      </desc>
+    </func>
+    <func>
+      <name>sendfile(IoDevice, Socket, ChunkSize) ->
+      {ok, BytesSent} | {error, Reason}</name>
+      <fsummary>send a file to a socket</fsummary>
+      <type>
+        <v>IoDevice = io_device()</v>
+        <v>Socket = port() | integer()</v>
+        <v>ChunkSize = non_neg_integer()</v>
+        <v>Reason = ext_posix() | terminated</v>
+      </type>
+      <desc>
+        <p>Sends the file referenced by <c>IoDevice</c>
+	in chunks of <c>ChunkSize</c> to <c>Socket</c>.
+	Returns <c>{ok, BytesSent}</c> if successful,
+        otherwise <c>{error, Reason}</c>.</p>
+	<p>Available on Linux, FreeBSD, Solaris, Darwin and Windows</p>
+      </desc>
+    </func>
+    <func>
+      <name>sendfile(IoDevice, Socket) ->
+      {ok, BytesSent} | {error, Reason}</name>
+      <fsummary>send a file to a socket</fsummary>
+      <type>
+        <v>IoDevice = io_device()</v>
+        <v>Socket = port() | integer()</v>
+        <v>Reason = ext_posix() | terminated</v>
+      </type>
+      <desc>
+        <p>Sends the file referenced by <c>IoDevice</c> to <c>Socket</c>.
+	Returns <c>{ok, BytesSent}</c> if successful,
+        otherwise <c>{error, Reason}</c>.</p>
+	<p>Available on Linux, FreeBSD, Solaris, Darwin and Windows</p>
+      </desc>
+    </func>
+    <func>
       <name>write(IoDevice, Bytes) -> ok | {error, Reason}</name>
       <fsummary>Write to a file</fsummary>
       <type>
