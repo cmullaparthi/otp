@@ -126,7 +126,9 @@ request(Url, Profile) ->
 %%      Header = {Field, Value}
 %%	Field = string()
 %%	Value = string()
-%%	Body = string() | binary() - HTLM-code
+%%	Body = string() | binary() | {fun(SendAcc) -> SendFunResult, SendAcc}
+%%      SendFunResult = eof | {ok, iolist(), NewSendAcc}
+%%      SendAcc = NewSendAcc = term()
 %%
 %% Description: Sends a HTTP-request. The function can be both
 %% syncronus and asynchronous in the later case the function will
@@ -426,11 +428,23 @@ service_info(Pid) ->
 
 handle_request(Method, Url, 
 	       {Scheme, UserInfo, Host, Port, Path, Query}, 
-	       Headers, ContentType, Body, 
+	       Headers, ContentType, Body0,
 	       HTTPOptions0, Options0, Profile) ->
 
     Started    = http_util:timestamp(), 
     NewHeaders = [{http_util:to_lower(Key), Val} || {Key, Val} <- Headers],
+
+    Body = case proplists:get_value("transfer-encoding", NewHeaders) of
+        "chunked" ->
+             case Body0 of
+                 {BodyFun, Acc} ->
+                     {chunkify_fun(BodyFun), Acc};
+                 _ ->
+                     Body0
+             end;
+         _ ->
+             Body0
+    end,
 
     try
 	begin
@@ -480,6 +494,22 @@ url_encode(URI, true) ->
     http_uri:encode(URI);
 url_encode(URI, false) ->
     URI.
+
+chunkify_fun(BodyFun) ->
+    fun(eof_body_fun) ->
+        eof;
+    (Acc) ->
+        case BodyFun(Acc) of
+            eof ->
+                {ok, <<"0\r\n\r\n">>, eof_body_fun};
+            {ok, Data, NewAcc} ->
+                Chunk = [
+                    integer_to_list(iolist_size(Data), 16), "\r\n",
+                    Data,
+                    "\r\n"],
+                {ok, Chunk, NewAcc}
+        end
+    end.
 
 handle_answer(RequestId, false, _) ->
     {ok, RequestId};
