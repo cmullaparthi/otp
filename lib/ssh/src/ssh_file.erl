@@ -121,7 +121,7 @@ add_host_key(Host, Key, Opts) ->
     KnownHosts = file_name(user, "known_hosts", Opts),
     case file:open(KnownHosts, [write,append]) of
    	{ok, Fd} ->
-	    ok = chmod(KnownHosts, ?PERM_644),
+	    ok = file:change_mode(KnownHosts, ?PERM_644),
    	    Res = add_key_fd(Fd, Host1, Key),
    	    file:close(Fd),
    	    Res;
@@ -541,9 +541,5 @@ default_user_dir()->
     {ok,[[Home|_]]} = init:get_argument(home),
     UserDir = filename:join(Home, ".ssh"),
     ok = filelib:ensure_dir(filename:join(UserDir, "dummy")),
-    ok = chmod(UserDir, ?PERM_700),
+    ok = file:change_mode(UserDir, ?PERM_700),
     UserDir.
-
-chmod(Path, Perms) ->
-    {ok, FileInfo} = file:read_file_info(Path),
-    ok = file:write_file_info(Path, FileInfo#file_info{mode=Perms}).
