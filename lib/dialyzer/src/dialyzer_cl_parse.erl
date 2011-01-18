@@ -188,6 +188,9 @@ cl(["--gui"|T]) ->
 cl(["--wx"|T]) ->
   put(dialyzer_options_mode, {gui, wx}),
   cl(T);
+cl(["--fullpath"|T]) ->
+  put(dialyzer_name_format, full_path),
+  cl(T);
 cl([H|_] = L) ->
   case filelib:is_file(H) orelse filelib:is_dir(H) of
     true ->
@@ -243,6 +246,7 @@ init() ->
   put(dialyzer_options_defines,   DefaultOpts#options.defines),
   put(dialyzer_options_files,     DefaultOpts#options.files),
   put(dialyzer_output_format,     formatted),
+  put(dialyzer_name_format,       basename),
   put(dialyzer_options_check_plt, DefaultOpts#options.check_plt),
   ok.
 
@@ -281,6 +285,7 @@ cl_options() ->
    {files_rec, get(dialyzer_options_files_rec)},
    {output_file, get(dialyzer_output)},
    {output_format, get(dialyzer_output_format)},
+   {name_format, get(dialyzer_name_format)},
    {analysis_type, get(dialyzer_options_analysis_type)},
    {get_warnings, get(dialyzer_options_get_warnings)},
    {callgraph_file, get(dialyzer_callgraph_file)}
