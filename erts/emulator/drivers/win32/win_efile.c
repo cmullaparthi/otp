@@ -751,6 +751,7 @@ efile_may_openfile(Efile_error* errInfo, char *name) {
     if (attr & FILE_ATTRIBUTE_DIRECTORY) {
 	errno = EISDIR;
 	return check_error(-1, errInfo);
+        return 0;
     }
     return 1;
 }
