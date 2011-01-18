@@ -117,6 +117,15 @@ accesspart
 fsyntax
 defbitsvalue
 defbitsnames
+agentcaps
+productrelease
+modulepart_ac
+modules_ac
+module_ac
+variationpart
+variations
+accesspart1
+creationpart
 .
 %% ----------------------------------------------------------------------
 Terminals 
@@ -164,6 +173,12 @@ integer variable atom string quote '{' '}' '::=' ':' '=' ',' '.' '(' ')' ';' '|'
 'MODULE-COMPLIANCE'
 'OBJECT-GROUP'
 'NOTIFICATION-GROUP'
+'AGENT-CAPABILITIES'
+'PRODUCT-RELEASE'
+'INCLUDES'
+'SUPPORTS'
+'VARIATION'
+'CREATION-REQUIRES'
 'REVISION'
 'OBJECT-IDENTITY'
 'MAX-ACCESS'
@@ -257,6 +272,8 @@ import_stuff -> 'NOTIFICATION-GROUP'
        : ensure_ver(2,'$1'), {builtin, 'NOTIFICATION-GROUP'}.
 import_stuff -> 'OBJECT-GROUP' 
        : ensure_ver(2,'$1'), {builtin, 'OBJECT-GROUP'}.
+import_stuff -> 'AGENT-CAPABILITIES'
+       : ensure_ver(2,'$1'), {builtin, 'AGENT-CAPABILITIES'}.
 import_stuff -> 'OBJECT-IDENTITY' 
        : ensure_ver(2,'$1'), {builtin, 'OBJECT-IDENTITY'}.
 import_stuff -> 'TEXTUAL-CONVENTION' 
@@ -505,6 +522,7 @@ definitionv2 -> notification : '$1'.
 definitionv2 -> objectgroup : '$1'.
 definitionv2 -> notificationgroup : '$1'.
 definitionv2 -> modulecompliance : '$1'.
+definitionv2 -> agentcaps : '$1'.
 
 listofdefinitionsv2 -> '$empty' : [] .
 listofdefinitionsv2 -> listofdefinitionsv2 definitionv2 : ['$2' | '$1'].
@@ -619,6 +637,35 @@ objectspart -> '$empty' : [].
 
 objects -> objectname : ['$1'].
 objects -> objects ',' objectname : ['$3'|'$1'].
+
+agentcaps -> objectname 'AGENT-CAPABILITIES' productrelease
+             'STATUS' statusv2 description referpart modulepart_ac nameassign :
+             AC = make_agent_caps('$1', '$3', '$5', '$6', '$7', '$8', '$9'),
+             {AC, line_of('$2')}.
+
+productrelease -> 'PRODUCT-RELEASE' string : lists:reverse(val('$2')).
+
+modulepart_ac -> '$empty'.
+modulepart_ac -> modules_ac.
+
+modules_ac -> module_ac.
+modules_ac -> modules_ac module_ac.
+
+module_ac -> 'SUPPORTS' modulenamepart 'INCLUDES' '{' objects '}' variationpart.
+
+variationpart -> '$empty'.
+variationpart -> variations.
+
+variations -> 'VARIATION' objectname syntaxpart writesyntaxpart accesspart1
+              creationpart defvalpart description.
+% syntactically this is subset of 1st statement, ignoring semantics for now...
+% variations -> 'VARIATION' objectname accesspart1 description.
+
+accesspart1 -> 'ACCESS' accessv2.
+accesspart1 -> '$empty'.
+
+creationpart -> 'CREATION-REQUIRES' '{' objects '}'.
+creationpart -> '$empty'.
 
 %%----------------------------------------------------------------------
 Erlang code.
@@ -768,6 +815,15 @@ make_notification_group(Name, Objs, Status, Desc, Ref, NA) ->
 	                   reference   = Ref,
 	                   name_assign = NA}.
 
+make_agent_caps(Name, ProdRel, Status, Desc, Ref, ModSup, NA) ->
+    #mc_agent_caps{name        = Name,
+                   prod_rel    = ProdRel,
+                   status      = Status,
+                   description = Desc,
+                   reference   = Ref,
+                   supports    = ModSup,
+                   name_assign = NA}.
+
 make_sequence(Name, Fields) ->
     #mc_sequence{name   = Name, 
                  fields = Fields}.
@@ -777,7 +833,6 @@ make_internal(Name, Macro, Parent, SubIdx) ->
                  macro     = Macro, 
                  parent    = Parent, 
                  sub_index = SubIdx}.
-
 
 
 %% ---------------------------------------------------------------------

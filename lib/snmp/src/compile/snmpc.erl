@@ -1015,6 +1015,22 @@ definitions_loop([{#mc_notification_group{name        = Name,
 
     definitions_loop(T, Data);
 
+definitions_loop([{#mc_agent_caps{name        = Name,
+                                  status      = Status,
+                                  name_assign = {Parent, SubIndex}},Line}|T],
+                 Deprecated) ->
+    ?vlog("defloop -> agentcaps ~p: ~n"
+      "   Status:   ~p~n"
+      "   Parent:   ~p~n"
+      "   SubIndex: ~p~n"
+      "   Line:     ~p",[Name, Status, Parent, SubIndex, Line]),
+    ensure_macro_imported('AGENT-CAPABILITIES', Line),
+    snmpc_lib:register_oid(Line, Name, Parent, SubIndex),
+    snmpc_lib:add_cdata(
+      #cdata.mes,
+      [snmpc_lib:makeInternalNode2(false, Name)]),
+    definitions_loop(T, Deprecated);
+
 definitions_loop([{#mc_object_type{name   = NameOfTable,
 				   syntax = {{sequence_of, SeqName},_},
 				   status = Tstatus},Tline}, 
@@ -1431,6 +1447,12 @@ reserved_words() ->
       'MODULE-COMPLIANCE',
       'OBJECT-GROUP',
       'NOTIFICATION-GROUP',
+      'AGENT-CAPABILITIES',
+      'PRODUCT-RELEASE',
+      'INCLUDES',
+      'SUPPORTS',
+      'VARIATION',
+      'CREATION-REQUIRES',
       'REVISION',
       'OBJECT-IDENTITY',
       'MAX-ACCESS',
