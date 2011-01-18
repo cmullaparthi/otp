@@ -28,6 +28,7 @@
 -export([open/2, close/1, datasync/1, sync/1, advise/4, position/2, truncate/1,
 	 write/2, pwrite/2, pwrite/3, read/2, read_line/1, pread/2, pread/3,
 	 copy/3, sendfile/4]).
+-export([allocate/2]).
 
 %% Specialized file operations
 -export([open/1, open/3]).
@@ -102,6 +103,7 @@
 -define(FILE_ADVISE,           31).
 -define(FILE_SENDFILE,         32).
 -define(FILE_EXISTS,           33).
+-define(FILE_ALLOCATE,         34).
 
 %% Driver responses
 -define(FILE_RESP_OK,          0).
@@ -266,6 +268,11 @@ advise(#file_descriptor{module = ?MODULE, data = {Port, _}},
 	_ ->
 	    {error, einval}
     end.
+
+%% Returns {error, Reason} | ok.
+allocate(#file_descriptor{module = ?MODULE, data = {Port, _}}, NewFileLength) ->
+    Cmd = <<?FILE_ALLOCATE, NewFileLength:64/signed>>,
+    drv_command(Port, Cmd).
 
 %% Returns {error, Reason} | ok.
 write(#file_descriptor{module = ?MODULE, data = {Port, _}}, Bytes) ->
