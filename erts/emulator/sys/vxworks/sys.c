@@ -1603,6 +1603,16 @@ int sys_double_to_chars(double fp, char *buf)
   return strlen(buf);
 }
 
+int
+sys_double_to_chars_fixed(double fp, char *buf, int sz, int precision, int compact)
+{
+    int n = snprintf(buf, sz, "%.*f", precision, fp);
+    if (compact)
+        for(char *s = buf + n - 1; *s == '0' && s > buf && *(s-1) != '.'; s--)
+            n--;
+    return n; /* i.e strlen(buf) */
+}
+
 
 /* Floating point exceptions */
 

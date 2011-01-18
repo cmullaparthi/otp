@@ -118,7 +118,7 @@ int
 sys_double_to_chars(double fp, char *buf)
 {
     char *s = buf;
-    
+
     (void) sprintf(buf, "%.20e", fp);
     /* Search upto decimal point */
     if (*s == '+' || *s == '-') s++;
@@ -127,6 +127,22 @@ sys_double_to_chars(double fp, char *buf)
     /* Scan to end of string */
     while (*s) s++;
     return s-buf; /* i.e strlen(buf) */
+}
+
+int
+sys_double_to_chars_fixed(double fp, char *buf, int sz, int precision, int compact)
+{
+    char *s = buf;
+
+    int n = snprintf(buf, sz, "%.*f", precision, fp);
+    /* Search upto decimal point */
+    if (*s == '+' || *s == '-') s++;
+    while (ISDIGIT(*s)) s++;
+    if (*s == ',') *s++ = '.'; /* Replace ',' with '.' */
+    if (compact)
+        for(s = buf + n - 1; *s == '0' && s > buf && *(s-1) != '.'; s--)
+            n--;
+    return n; /* i.e strlen(buf) */
 }
 
 int
