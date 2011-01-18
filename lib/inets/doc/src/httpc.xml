@@ -36,7 +36,7 @@
     <note>
       <p>When starting the Inets application a manager process for the
 	default profile will be started. The functions in this API
-	that do not explicitly use a profile will accesses the
+	that do not explicitly use a profile will access the
 	default profile. A profile keeps track of proxy options,
 	cookies and other options that can be applied to more than one
 	request. </p>
@@ -248,11 +248,11 @@ ssl_options() = {verify,     code()}   |
 
           <tag><c><![CDATA[autoredirect]]></c></tag>
           <item>
-            <p>Should the client automatically retreive the information 
+            <p>Should the client automatically retrieve the information
               from the new URI and return that as the result instead 
               of a 30X-result code. </p>
             <p>Note that for some 30X-result codes automatic redirect 
-              is not allowed in these cases the 30X-result will always 
+              is not allowed. In these cases the 30X-result will always
               be returned. </p>
             <p>Defaults to <c>true</c>. </p>
 	  </item>
@@ -356,11 +356,11 @@ ssl_options() = {verify,     code()}   |
               checked in any way. </p>
             <p>Note that this may change the socket behaviour 
               (see <seealso marker="kernel:inet#setopts">inet:setopts/2</seealso>) 
-              for an already existing, and therefor already connected 
+              for an already existing one, and therefore an already connected
               request handler. </p>
             <p>By default the socket options set by the
               <seealso marker="#set_options">set_options/1,2</seealso> 
-              function are used when establishing a connection. </p>
+              function are used when establishing the connection. </p>
 	  </item>
 
           <tag><c><![CDATA[receiver]]></c></tag>
